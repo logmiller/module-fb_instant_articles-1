@@ -34,19 +34,12 @@ use Facebook\InstantArticles\Transformer\Transformer;
  * Class DrupalInstantArticleDisplay
  * @package Drupal\fb_instant_articles_display
  */
-class DrupalInstantArticleDisplay {
+class DrupalInstantArticleDisplay extends \Drupal\fb_instant_articles\InstantArticle {
 
   /**
    * Facebook Instant Articles version number.
    */
   const FB_INSTANT_ARTICLES_VERSION = '7.x-1.0-rc1';
-
-  /**
-   * Node object for which we are building an InstantArticle object.
-   *
-   * @var \stdClass
-   */
-  private $node;
 
   /**
    * Layout settings which map fields to the Facebook Instant Article region
@@ -57,21 +50,12 @@ class DrupalInstantArticleDisplay {
   private $layoutSettings;
 
   /**
-   * Facebook Instant Articles object that encapsulates the structure and
-   * content of the node object we are wrapping.
-   *
-   * @var \Facebook\InstantArticles\Elements\InstantArticle
-   */
-  private $instantArticle;
-
-  /**
    * @param \stdClass $node
    * @param \Facebook\InstantArticles\Elements\InstantArticle $instantArticle
    */
-  private function __construct($node, $layoutSettings, $instantArticle) {
-    $this->node = $node;
+  public function __construct($node, $layoutSettings, $instantArticle) {
+    parent::__construct($node, $instantArticle);
     $this->layoutSettings = $layoutSettings;
-    $this->instantArticle = $instantArticle;
   }
 
   /**
@@ -84,7 +68,7 @@ class DrupalInstantArticleDisplay {
     $instantArticle = InstantArticle::create()
       ->addMetaProperty('op:generator:application', 'drupal/fb_instant_articles')
       ->addMetaProperty('op:generator:application:version', self::FB_INSTANT_ARTICLES_VERSION)
-      ->withCanonicalUrl(url('node/' . $node->nid, array('absolute' => TRUE)))
+      ->withCanonicalURL(url('node/' . $node->nid, array('absolute' => TRUE)))
       ->withStyle(variable_get('fb_instant_articles_style', 'default'));
     // InstantArticles header, at this point, only have publish an modify
     // times to add.
@@ -116,21 +100,6 @@ class DrupalInstantArticleDisplay {
     $display->addAnalyticsFromSettings();
     $display->addAdsFromSettings();
     return $display;
-  }
-
-  /**
-   * Gets the wrapped InstantArticle object.
-   *
-   * Also invokes a hook to allow other modules to alter the InstantArticle
-   * object before render or any other operation.
-   *
-   * @see hook_fb_instant_articles_display_instant_article_alter()
-   *
-   * @return \Facebook\InstantArticles\Elements\InstantArticle
-   */
-  public function getArticle() {
-    drupal_alter('fb_instant_articles_display_instant_article', $this->instantArticle, $this->node);
-    return $this->instantArticle;
   }
 
   /**
